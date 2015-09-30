@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">WikiPapers</string>
+    <string name="title_note_detail">Note Detail</string>
+    <string name="search_notes">Search Notes</string>
+    <string name="all_notes">All Notes</string>
+    <string name="add_note">New Note</string>
+    <string name="search_hint">Search for Notes</string>
+    <string name="edit_note">Edit Note</string>
+    <string name="save_note">Save Note</string>
+    <string name="delete_note">Delete Note</string>
+    <string name="return_button">Return</string>
+    <string name="create_note">Create Note</string>
+    <string name="cancel">Cancel</string>
+    <string name="note_title">Title</string>
+    <string name="note_content">Content</string>
+    
+</resources>

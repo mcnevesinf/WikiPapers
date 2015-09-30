@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+
+    <gradient android:endColor="#363636" 
+              android:startColor="#000000" 
+              android:angle="90">
+        
+    </gradient>
+
+</shape>
+<!-- From: file:/home/miguel/StudioProjects/WikiPapers_v1.0/app/src/main/res/drawable-hdpi/list_selector_focused.xml -->
