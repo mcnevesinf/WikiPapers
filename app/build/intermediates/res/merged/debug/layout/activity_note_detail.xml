@@ -1,8 +1,0 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/note_detail_container"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".PaperDetailActivity"
-    tools:ignore="MergeRootFrame" />
-<!-- From: file:/home/miguel/StudioProjects/WikiPapers_v1.0/app/src/main/res/layout/activity_note_detail.xml -->
