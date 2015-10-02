@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <resources>
 
     <string name="app_name">WikiPapers</string>
@@ -13,7 +14,8 @@
     <string name="return_button">Return</string>
     <string name="create_note">Create Note</string>
     <string name="cancel">Cancel</string>
-    <string name="note_title">Title</string>
-    <string name="note_content">Content</string>
+    <string name="note_title">Note title</string>
+    <string name="note_content">Note content</string>
     
 </resources>
+

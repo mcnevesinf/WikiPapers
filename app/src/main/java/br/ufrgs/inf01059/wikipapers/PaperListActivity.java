@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
@@ -70,6 +71,12 @@ public class PaperListActivity extends ActionBarActivity implements
 	Messenger mService = null;
 	/** Flag indicating whether we have called bind on the service. */
 	boolean mIsBound;
+	private String noteId = null;
+	private final int ADD_NOTE = 1;
+	private final int EDIT_NOTE = 2;
+	private final int DETAIL_NOTE = 3;
+	
+	private boolean mReturningWithResult = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -251,16 +258,51 @@ public class PaperListActivity extends ActionBarActivity implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.add_note:
-			
+
+			Intent createNoteIntent = new Intent(this, CreateNoteActivity.class);
+			startActivityForResult(createNoteIntent, ADD_NOTE);
+
 			return true;
 			
         case R.id.all_notes:
 			
         	fillDataTransaction("", "date DESC", "");
+
+        	noteId = null;
         	return true;
 			
-		}
-		return super.onOptionsItemSelected(item);
+        case R.id.delete_note:
+        	if(noteId != null){
+        	     	NotesDAO.deleteNote(getApplicationContext(), Integer.parseInt(noteId));	
+        	     	Toast.makeText(getApplicationContext(), "Note Deleted!", Toast.LENGTH_SHORT).show();
+			    	fillDataTransaction("", "date DESC", "");
+			    	onItemSelected(null);
+			    	
+        	}
+        	else
+        		Toast.makeText(getApplicationContext(), "Select Note First!", Toast.LENGTH_SHORT).show();
+        	return true;
+        	
+        case R.id.edit_note:
+        	Intent editNoteIntent = new Intent(this, CreateNoteActivity.class);
+			editNoteIntent.putExtra(CreateNoteActivity.ARG_ITEM_ID, noteId);
+			startActivityForResult(editNoteIntent, EDIT_NOTE);
+			
+        	return true;	
+        case R.id.return_button:
+        	
+        	if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+	            getSupportFragmentManager().popBackStack();
+	            
+	        }
+	        else{
+	            finish();
+	        }
+        	return true;
+			
+       }
+		
+	   return super.onOptionsItemSelected(item);
 	}
 	
 
@@ -271,6 +313,7 @@ public class PaperListActivity extends ActionBarActivity implements
 	@Override
 	public void onItemSelected(String id) {
 		
+		noteId = id;
 		if (mTwoPane) {
 			
 			// In two-pane mode, show the detail view in this activity by
@@ -280,19 +323,24 @@ public class PaperListActivity extends ActionBarActivity implements
 			arguments.putString(PaperDetailFragment.ARG_ITEM_ID, id);
 			PaperDetailFragment fragment = new PaperDetailFragment();
 			fragment.setArguments(arguments);
-			getSupportFragmentManager().beginTransaction()
-					.replace(R.id.note_detail_container, fragment).commit();
-
+			FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+			ft.replace(R.id.note_detail_container, fragment);
+			
+			if(getIntent().getAction().equals(Intent.ACTION_VIEW))
+			     ft.addToBackStack(null);
+			
+			ft.commit();
+			
 		} else {
 			// In single-pane mode, simply start the detail activity
 			// for the selected item ID.
 			
 			Intent detailIntent = new Intent(this, PaperDetailActivity.class);
 			detailIntent.putExtra(PaperDetailFragment.ARG_ITEM_ID, id);
-			startActivity(detailIntent);
+			startActivityForResult(detailIntent, DETAIL_NOTE);
 		}
 	}
-	
+
 	private void handleIntent(Intent intent) {
 		   
 		if(Intent.ACTION_MAIN.equals(intent.getAction())){
@@ -329,11 +377,33 @@ public class PaperListActivity extends ActionBarActivity implements
     	arguments.putString(PaperListFragment.LIMIT, limitQuery);
     	arguments.putBoolean(PaperListFragment.TWO_PANE, mTwoPane);
     	fragment.setArguments(arguments); 
-    	getSupportFragmentManager().beginTransaction()
-    	.replace(R.id.note_list_container, fragment).commit();
+    	    	
+    	FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		ft.replace(R.id.note_list_container, fragment);
+		
+		ft.commit();
 		
 	}
-	
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if((resultCode == RESULT_OK) 
+        		&& (requestCode == EDIT_NOTE) || (requestCode == DETAIL_NOTE))
+            mReturningWithResult = true;
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        if (mReturningWithResult) {
+        	fillDataTransaction("", "date DESC", "");
+        }
+        if(mTwoPane)
+        	onItemSelected(noteId);
+      
+        mReturningWithResult = false;
+    }
 
 	/**
 	 * Verify the intent that was passed to this activity for any note's ID. If
@@ -353,6 +423,10 @@ public class PaperListActivity extends ActionBarActivity implements
 		}
 		return id;
 	}
+	
+	
+
+	
 	
 	
 }
