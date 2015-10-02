@@ -16,9 +16,21 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+    }
 }
 
 dependencies {
     compile 'com.android.support:appcompat-v7:19.1.0'
     compile 'com.android.support:support-v4:19.1.0'
+    compile files('libs/snmp4j-2.3.4.jar')
+    compile files('libs/snmp4j-agent-2.4.0.jar')
+    compile files('libs/log4j-core-2.4.jar')
+    compile files('libs/log4j-1.2-api-2.4.jar')
 }

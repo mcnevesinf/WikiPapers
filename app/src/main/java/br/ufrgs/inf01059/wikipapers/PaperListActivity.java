@@ -2,16 +2,45 @@ package br.ufrgs.inf01059.wikipapers;
 
 import br.ufrgs.inf01059.wikipapers.model.NotesDAO;
 import android.app.SearchManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.text.ParseException;
+import java.util.List;
+import java.util.Map;
+
 import br.ufrgs.inf01059.wikinotes.R;
+import br.ufrgs.inf01059.wikipapers.SnmpAgent.AgentService;
+import br.ufrgs.inf01059.wikipapers.SnmpAgent.*;
+
+//import org.apache.http.ParseException;
+import org.snmp4j.*;
+import org.snmp4j.agent.*;
+import org.snmp4j.agent.cfg.*;
+import org.snmp4j.agent.io.*;
+import org.snmp4j.agent.io.prop.*;
+import org.snmp4j.agent.mo.*;
+import org.snmp4j.log.*;
+import org.snmp4j.mp.*;
+import org.snmp4j.smi.*;
+import org.snmp4j.transport.*;
+import org.snmp4j.util.*;
+import org.snmp4j.security.SecurityProtocols;
 
 /**
  * An activity representing a list of Notes. This activity has different
@@ -36,6 +65,11 @@ public class PaperListActivity extends ActionBarActivity implements
 	 * device.
 	 */
 	private boolean mTwoPane;
+
+	/** Messenger for communicating with service. */
+	Messenger mService = null;
+	/** Flag indicating whether we have called bind on the service. */
+	boolean mIsBound;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -52,11 +86,142 @@ public class PaperListActivity extends ActionBarActivity implements
 		}	   
 		// TODO: If exposing deep links into your app, handle intents here.
 
+		Intent intent = new Intent(this, AgentService.class);
+		startService(intent);
+		doBindAgentService();
+
 		// Verifying if we are filtering a intent, which means someone
 		// clicked in a note's link and is arriving here. See manifest
 		// and the intent filters defined for this activity
-		handleIntent(getIntent());	
-		
+		handleIntent(getIntent());
+
+		/*String[] cmd_line = {"udp:127.0.0.1/4700", "tcp:127.0.0.1/4700"};
+		Map<String,List> commandLineParameters;
+		ArgumentParser parser =
+				new ArgumentParser("-c[s{=SampleAgent.cfg}] -bc[s{=SampleAgent.bc}] "+
+						"+ts[s] +cfg[s] +tls-version[s{=TLSv1}<TLSv1[\\.1|\\.2]?[,TLSv1[\\.1|\\.2]?]*>] ",
+						"#address[s<(udp|tcp|tls):.*[/[0-9]+]?>] ..");
+		try {
+			commandLineParameters = parser.parse(cmd_line);
+			SampleAgent sampleAgent = new SampleAgent(commandLineParameters);
+            SecurityProtocols.getInstance().addDefaultProtocols();
+            sampleAgent.run();
+            for (int i=1; i<0; i++) {
+                sampleAgent.getAgent().getAgentNotificationOriginator().notify(
+                        new OctetString(), SnmpConstants.coldStart,
+                        new VariableBinding[] {
+                                new VariableBinding(new OID("1.3.6.1.4.0"), new Integer32(i)),
+                                new VariableBinding(new OID("1.3.6.1.4.0"),new Counter32(278070606)),
+                                new VariableBinding(new OID("1.3.6.1.4.0"),new OctetString("Hello world!")),
+                                new VariableBinding(new OID("1.3.6.1.4.0"),new IpAddress("127.0.0.2")),
+                                new VariableBinding(new OID("1.3.6.1.4.0"),new Gauge32(867685L))
+                        });
+            }
+		}
+		catch (ParseException ex) {
+			System.err.println(ex.getMessage());
+		}*/
+	}
+
+	/**
+	 * Handler of incoming messages from service.
+	 */
+	class IncomingHandler extends Handler {
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+				case AgentService.MSG_SET_VALUE:
+					break;
+
+				case AgentService.MSG_SNMP_REQUEST_RECEIVED:
+					/*
+					aux.setText(AgentService.lastRequestReceived);
+					messagesReceivedScrollView.addView(aux);*/
+
+					break;
+
+				case AgentService.MSG_MANAGER_MESSAGE_RECEIVED:
+					/*MIBtree miBtree = MIBtree.getInstance();
+					String message = miBtree.getNext(MIBtree.MNG_MANAGER_MESSAGE_OID).getVariable().toString();
+					messagesReceivedAdapter.add(message);
+					messagesReceivedAdapter.notifyDataSetChanged();*/
+					break;
+
+				default:
+					super.handleMessage(msg);
+			}
+		}
+	}
+
+	/**
+	 * Target we publish for clients to send messages to IncomingHandler.
+	 */
+	final Messenger mMessenger = new Messenger(new IncomingHandler());
+
+	private ServiceConnection mConnection = new ServiceConnection() {
+		public void onServiceConnected(ComponentName className,
+									   IBinder service) {
+
+			mService = new Messenger(service);
+
+			// We want to monitor the service for as long as we are
+			// connected to it.
+			try {
+				Message msg = Message.obtain(null,
+						AgentService.MSG_REGISTER_CLIENT);
+				msg.replyTo = mMessenger;
+				mService.send(msg);
+
+				// Give it some value as an example.
+				msg = Message.obtain(null,
+						AgentService.MSG_SET_VALUE, this.hashCode(), 0);
+				mService.send(msg);
+			} catch (RemoteException e) {
+
+			}
+
+		}
+
+		public void onServiceDisconnected(ComponentName className) {
+			// This is called when the connection with the service has been
+			// unexpectedly disconnected -- that is, its process crashed.
+			mService = null;
+		}
+	};
+
+	void doBindAgentService() {
+		// Establish a connection with the service.  We use an explicit
+		// class name because there is no reason to be able to let other
+		// applications replace our component.
+		bindService(new Intent(this, AgentService.class), mConnection, Context.BIND_AUTO_CREATE);
+		mIsBound = true;
+	}
+
+	void doUnbindAgentService() {
+		if (mIsBound) {
+			// If we have received the service, and hence registered with
+			// it, then now is the time to unregister.
+			if (mService != null) {
+				try {
+					Message msg = Message.obtain(null,
+							AgentService.MSG_UNREGISTER_CLIENT);
+					msg.replyTo = mMessenger;
+					mService.send(msg);
+				} catch (RemoteException e) {
+
+				}
+			}
+
+			// Detach our existing connection.
+			unbindService(mConnection);
+			mIsBound = false;
+		}
+	}
+
+	@Override
+	protected void onDestroy() {
+		doUnbindAgentService();
+		super.onDestroy();
 	}
 	
 	@Override
