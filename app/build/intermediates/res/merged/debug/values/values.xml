@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- From: file:/home/miguel/StudioProjects/WikiPapers_v1.0/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/19.1.0/res/values/values.xml -->
+    <!-- From: file:/home/miguel/StudioProjects/WikiPapers/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/19.1.0/res/values/values.xml -->
     <eat-comment/>
     <attr format="reference" name="actionBarDivider"/>
     <attr format="reference" name="actionBarItemBackground"/>
@@ -131,7 +131,7 @@
     <string name="abc_searchview_description_voice">Voice search</string>
     <string name="abc_shareactionprovider_share_with">Share with</string>
     <string name="abc_shareactionprovider_share_with_application">Share with %s</string>
-    <!-- From: file:/home/miguel/StudioProjects/WikiPapers_v1.0/app/src/main/res/values/strings.xml -->
+    <!-- From: file:/home/miguel/StudioProjects/WikiPapers/app/src/main/res/values/strings.xml -->
     <eat-comment/>
     <string name="add_note">New Note</string>
     <string name="all_notes">All Notes</string>
@@ -140,14 +140,14 @@
     <string name="create_note">Create Note</string>
     <string name="delete_note">Delete Note</string>
     <string name="edit_note">Edit Note</string>
-    <string name="note_content">Content</string>
-    <string name="note_title">Title</string>
+    <string name="note_content">Note content</string>
+    <string name="note_title">Note title</string>
     <string name="return_button">Return</string>
     <string name="save_note">Save Note</string>
     <string name="search_hint">Search for Notes</string>
     <string name="search_notes">Search Notes</string>
     <string name="title_note_detail">Note Detail</string>
-    <!-- From: file:/home/miguel/StudioProjects/WikiPapers_v1.0/app/src/main/res/values/styles.xml -->
+    <!-- From: file:/home/miguel/StudioProjects/WikiPapers/app/src/main/res/values/styles.xml -->
     <eat-comment/>
     <style name="AppBaseTheme" parent="android:Theme.Light">
         <!--
@@ -159,7 +159,7 @@
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
-    <!-- From: file:/home/miguel/StudioProjects/WikiPapers_v1.0/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/19.1.0/res/values/values.xml -->
+    <!-- From: file:/home/miguel/StudioProjects/WikiPapers/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/19.1.0/res/values/values.xml -->
     <eat-comment/>
     <style name="TextAppearance.AppCompat.Base.CompactMenu.Dialog" parent="android:TextAppearance.Medium">
         <item name="android:textColor">@android:color/primary_text_light</item>

@@ -15,11 +15,11 @@
       yourapp:showAsAction="ifRoom|withText" >
    </item>
 
-   <item
-      android:id="@+id/all_notes"
-      android:title="@string/all_notes"
-      android:icon="@drawable/ic_action_view_as_list"
-      yourapp:showAsAction="ifRoom|withText"  >
+  <item 
+      android:id="@+id/edit_note"
+      android:title="@string/edit_note"
+      android:icon="@drawable/ic_action_edit"
+      yourapp:showAsAction="ifRoom|withText">
    </item>
    
    <item
@@ -29,12 +29,11 @@
       yourapp:showAsAction="ifRoom|withText"  >
    </item>
    
-   
-   <item 
-      android:id="@+id/edit_note"
-      android:title="@string/edit_note"
-      android:icon="@drawable/ic_action_edit"
-      yourapp:showAsAction="ifRoom|withText">
+   <item
+      android:id="@+id/all_notes"
+      android:title="@string/all_notes"
+      android:icon="@drawable/ic_action_view_as_list"
+      yourapp:showAsAction="ifRoom|withText"  >
    </item>
    
    <item
@@ -52,4 +51,4 @@
    </item>
      
 </menu>
-<!-- From: file:/home/miguel/StudioProjects/WikiPapers_v1.0/app/src/main/res/menu/note_list_twopane.xml -->
+<!-- From: file:/home/miguel/StudioProjects/WikiPapers/app/src/main/res/menu/note_list_twopane.xml -->

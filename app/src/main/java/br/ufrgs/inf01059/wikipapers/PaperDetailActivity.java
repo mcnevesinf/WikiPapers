@@ -7,7 +7,9 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 import br.ufrgs.inf01059.wikinotes.R;
+import br.ufrgs.inf01059.wikipapers.model.NotesDAO;
 
 /**
  * An activity representing a single Note detail screen. This activity is only
@@ -17,7 +19,10 @@ import br.ufrgs.inf01059.wikinotes.R;
  * This activity is mostly just a 'shell' activity containing nothing more than
  * a {@link PaperDetailFragment}.
  */
+
 public class PaperDetailActivity extends ActionBarActivity {
+	
+	private final int EDIT_NOTE = 1;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -37,9 +42,11 @@ public class PaperDetailActivity extends ActionBarActivity {
 		// http://developer.android.com/guide/components/fragments.html
 		//
 		if (savedInstanceState == null) {
+			
+			setTitle(NotesDAO.getNote(getApplicationContext(),Integer.parseInt(getIntent()
+					.getStringExtra(PaperDetailFragment.ARG_ITEM_ID))).title);
 			// Create the detail fragment and add it to the activity
 			// using a fragment transaction.
-
 			Bundle arguments = new Bundle();
 			arguments.putString(PaperDetailFragment.ARG_ITEM_ID, getIntent()
 					.getStringExtra(PaperDetailFragment.ARG_ITEM_ID));
@@ -75,25 +82,43 @@ public class PaperDetailActivity extends ActionBarActivity {
 			
 			return true;
 		case R.id.edit_note:
+
+			Intent editNoteIntent = new Intent(this, CreateNoteActivity.class);
+			editNoteIntent.putExtra(CreateNoteActivity.ARG_ITEM_ID, getIntent());
 			
 			return true;
 		case R.id.save_note:
 			
 			return true;
-			
+
         case R.id.return_button:
-        	finish();
+        	Intent returnNoteIntent = new Intent();
+		    setResult(RESULT_CANCELED, returnNoteIntent);  
+			finish();
 			return true;	
+			
 		case R.id.delete_note:
-						
-			Intent deleteIntent = new Intent(Intent.ACTION_DELETE);
-			deleteIntent.putExtra("itemId", getIntent()
-					.getStringExtra(PaperDetailFragment.ARG_ITEM_ID));
-	        startActivity(deleteIntent);
+			NotesDAO.deleteNote(getApplicationContext(), Integer.parseInt(getIntent()
+					.getStringExtra(PaperDetailFragment.ARG_ITEM_ID)));
+			Toast.makeText(getApplicationContext(), "Note Deleted!", Toast.LENGTH_SHORT).show();
+			Intent deleteNoteIntent = new Intent();
+		    setResult(RESULT_OK, deleteNoteIntent);  
+			finish();
+			
 			
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	    super.onActivityResult(requestCode, resultCode, data);
+	    if(requestCode == EDIT_NOTE && resultCode == RESULT_OK){
+	    	Intent editNoteIntent = new Intent();
+	        setResult(RESULT_OK, editNoteIntent);  
+		    finish();
+	    } 	
+	    
 	}
 	
 }

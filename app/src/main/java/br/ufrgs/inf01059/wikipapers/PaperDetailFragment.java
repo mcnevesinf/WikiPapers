@@ -29,7 +29,7 @@ public class PaperDetailFragment extends Fragment {
 	/**
 	 * The dummy content this fragment is presenting.
 	 */
-	private Note mNote;
+	private Note mNote = null;
 
 	/**
 	 * Mandatory empty constructor for the fragment manager to instantiate the
@@ -42,13 +42,18 @@ public class PaperDetailFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		if (getArguments().containsKey(ARG_ITEM_ID)) {
+		Bundle arguments = getArguments();
+		if (arguments.containsKey(ARG_ITEM_ID)) {
 			// Load the dummy content specified by the fragment
 			// arguments. In a real-world scenario, use a Loader
 			// to load content from a content provider.
-			mNote = NotesDAO.getNote(getActivity(),
-					Integer.parseInt(getArguments().getString(ARG_ITEM_ID)));
+			String noteId = arguments.getString(ARG_ITEM_ID);
+			if(noteId != null)
+			      mNote = NotesDAO.getNote(getActivity(), Integer.parseInt(noteId));
+			      
+					
 		}
+			
 	}
 
 	@Override

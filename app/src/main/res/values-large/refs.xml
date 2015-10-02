@@ -1,3 +1,4 @@
+
 <resources>
 
     <!--
@@ -12,3 +13,5 @@
     <item name="note_list" type="menu">@menu/note_list_twopane</item>
 
 </resources>
+
+

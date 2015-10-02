@@ -98,6 +98,7 @@ public class PaperListFragment extends ListFragment {
 		super.onViewCreated(view, savedInstanceState);
 		
 		getListView().setSelector(R.drawable.note_list_selector);
+		setEmptyText("No Notes Available");
 		setActivateOnItemClick(true);
 				
 		// Restore the previously serialized activated item position.
@@ -176,5 +177,5 @@ public class PaperListFragment extends ListFragment {
 
 		mActivatedPosition = position;
 	}
-	
+
 }

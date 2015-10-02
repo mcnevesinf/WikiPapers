@@ -1,73 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/ScrollView1"
+
+    android:id="@+id/create_note_scroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <RelativeLayout
-        android:id="@+id/RelativeLayout1"
+    <LinearLayout
+        android:id="@+id/linear_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content" 
+        android:orientation="vertical">
 
+       
+        
         <TextView
             android:id="@+id/note_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_below="@+id/textView1"
-            android:layout_marginLeft="65dp"
-            android:layout_marginTop="53dp"
-            android:text="@string/note_title"
-            android:textSize="20sp" />
+            android:text="Title"
+            android:textSize="20sp"
+            android:layout_marginLeft="10dip"
+            android:layout_marginTop="10dip"
+            android:textColor="#63B8FF" />
+        
+        <EditText
+            android:id="@+id/edit_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="top|left"
+            android:layout_marginTop="5dip"
+            android:layout_marginLeft="10dip"
+    		android:layout_marginRight="10dip"
+    		android:inputType="textMultiLine" />
 
         <TextView
             android:id="@+id/note_content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/textView2"
-            android:layout_below="@+id/editText1"
-            android:layout_marginTop="42dp"
-            android:text="@string/note_content"
-            android:textSize="20sp" />
+            android:text="Body"
+            android:textSize="20sp"
+            android:layout_marginLeft="10dip"
+            android:layout_marginTop="10dip"
+            android:textColor="#63B8FF"/>
 
         <EditText
-            android:id="@+id/edit_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/textView2"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="25dp"
-            android:ems="10"
-            android:inputType="text" />
+   			 android:id="@+id/edit_body"
+   			 android:layout_width="match_parent"
+   			 android:layout_height="wrap_content"
+   			 android:gravity="top|left"
+    		 android:scrollHorizontally="false"
+    		 android:layout_marginLeft="10dip"
+    		 android:layout_marginRight="10dip"
+    		 android:layout_marginTop="5dip"
+    		 android:inputType="textMultiLine" />
 
-        <EditText
-            android:id="@+id/edit_content"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignRight="@+id/note_content"
-            android:layout_below="@+id/textView3"
-            android:layout_marginTop="25dp"
-            android:ems="10"
-            android:inputType="textMultiLine" />
-
-        <Button
-            android:id="@+id/button1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignRight="@+id/editText2"
-            android:layout_below="@+id/editText2"
-            android:layout_marginTop="43dp"
-            android:text="@string/create_note" />
-
-        <Button
-            android:id="@+id/button2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBaseline="@+id/button1"
-            android:layout_alignBottom="@+id/button1"
-            android:layout_toLeftOf="@+id/button1"
-            android:text="@string/cancel" />
-    </RelativeLayout>
+    </LinearLayout>
 
 </ScrollView>
-<!-- From: file:/home/miguel/StudioProjects/WikiPapers_v1.0/app/src/main/res/layout/create_note_layout.xml -->
+<!-- From: file:/home/miguel/StudioProjects/WikiPapers/app/src/main/res/layout/create_note_layout.xml -->

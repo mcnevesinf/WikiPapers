@@ -36,7 +36,7 @@
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.DELETE" />
+                <action android:name="ACTION_UPDATE" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
@@ -50,6 +50,17 @@
         </activity>
         <activity
             android:name="br.ufrgs.inf01059.wikipapers.PaperDetailActivity"
+            android:label="@string/title_note_detail"
+            android:parentActivityName="br.ufrgs.inf01059.wikipapers.PaperListActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".NoteListActivity" />
+            <meta-data
+                android:name="android.support.UI_OPTIONS"
+                android:value="splitActionBarWhenNarrow" />
+        </activity>
+        <activity
+            android:name="br.ufrgs.inf01059.wikipapers.CreateNoteActivity"
             android:label="@string/title_note_detail"
             android:parentActivityName="br.ufrgs.inf01059.wikipapers.PaperListActivity" >
             <meta-data

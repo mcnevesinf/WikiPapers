@@ -2,32 +2,26 @@
     <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:yourapp="http://schemas.android.com/apk/res-auto" >
    
-   <item 
-      android:id="@+id/return_button"
-      android:title="@string/return_button"
-      android:icon="@drawable/ic_action_undo"
-      yourapp:showAsAction="ifRoom|withText">
-   </item>
-   
+        
    <item 
       android:id="@+id/edit_note"
       android:title="@string/edit_note"
       android:icon="@drawable/ic_action_edit"
       yourapp:showAsAction="ifRoom|withText">
    </item>
-   
-   <item
-      android:id="@+id/save_note"
-      android:title="@string/save_note"
-      android:icon="@drawable/ic_action_save"
-      yourapp:showAsAction="ifRoom|withText" >
-   </item>
-
+  
    <item
       android:id="@+id/delete_note"
       android:title="@string/delete_note"
       android:icon="@drawable/ic_action_discard"
       yourapp:showAsAction="ifRoom|withText"  >
+   </item>
+   
+    <item 
+      android:id="@+id/return_button"
+      android:title="@string/return_button"
+      android:icon="@drawable/ic_action_undo"
+      yourapp:showAsAction="ifRoom|withText">
    </item>
     
 

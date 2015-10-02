@@ -8,4 +8,4 @@
     android:textIsSelectable="true"
     tools:context=".PaperDetailFragment" 
     android:textColor="#D3D3D3"/>
-<!-- From: file:/home/miguel/StudioProjects/WikiPapers_v1.0/app/src/main/res/layout/fragment_note_detail.xml -->
+<!-- From: file:/home/miguel/StudioProjects/WikiPapers/app/src/main/res/layout/fragment_note_detail.xml -->

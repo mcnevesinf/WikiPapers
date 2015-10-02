@@ -3,18 +3,20 @@
       xmlns:yourapp="http://schemas.android.com/apk/res-auto" >
    
   <item
-      android:id="@+id/create_note"
-      android:title="@string/create_note"
-      android:icon="@drawable/ic_action_new"
+      android:id="@+id/save_note"
+      android:title="@string/save_note"
+      android:icon="@drawable/ic_action_save"
       yourapp:showAsAction="ifRoom|withText" >
    </item>
 
    <item
       android:id="@+id/cancel"
       android:title="@string/cancel"
-      android:icon="@drawable/ic_action_remove"
+      android:icon="@drawable/ic_action_undo"
+
       yourapp:showAsAction="ifRoom|withText"  >
    </item>
    
   
-</menu><!-- From: file:/home/miguel/StudioProjects/WikiPapers_v1.0/app/src/main/res/menu/create_note_detail.xml -->
+</menu>
+<!-- From: file:/home/miguel/StudioProjects/WikiPapers/app/src/main/res/menu/create_note_detail.xml -->
