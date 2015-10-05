@@ -84,7 +84,10 @@ public class PaperDetailActivity extends ActionBarActivity {
 		case R.id.edit_note:
 
 			Intent editNoteIntent = new Intent(this, CreateNoteActivity.class);
-			editNoteIntent.putExtra(CreateNoteActivity.ARG_ITEM_ID, getIntent());
+			//>>>>>> CODE FOR EDITION ADDED HERE <<<<<<<
+			//editNoteIntent.putExtra(CreateNoteActivity.ARG_ITEM_ID, getIntent());
+			editNoteIntent.putExtra(CreateNoteActivity.ARG_ITEM_ID, getIntent().getStringExtra("item_id"));
+			startActivityForResult(editNoteIntent, EDIT_NOTE);
 			
 			return true;
 		case R.id.save_note:
