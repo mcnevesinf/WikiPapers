@@ -7,7 +7,11 @@ import android.os.*;
 import android.util.Log;
 import br.ufrgs.inf01059.wikipapers.SnmpAgent.MIBTree;
 import org.snmp4j.*;
+import org.snmp4j.mp.MPv1;
+import org.snmp4j.mp.MPv2c;
+import org.snmp4j.mp.MPv3;
 import org.snmp4j.mp.SnmpConstants;
+import org.snmp4j.security.SecurityProtocols;
 import org.snmp4j.security.USM;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultTcpTransportMapping;
@@ -43,6 +47,52 @@ public class AgentService extends Service implements CommandResponder {
     //private MIBTree MIB_MAP;
     private Timer timer;
 
+    /**
+     * Target we publish for clients to send messages to IncomingHandler.
+     */
+    final Messenger mMessenger = new Messenger(new IncomingHandler());
+
+    /**
+     * Handler of incoming messages from clients.
+     */
+    class IncomingHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_REGISTER_CLIENT:
+                    mClients.add(msg.replyTo);
+                    break;
+                case MSG_UNREGISTER_CLIENT:
+                    mClients.remove(msg.replyTo);
+                    break;
+                case MSG_SET_VALUE:
+                    mValue = msg.arg1;
+                    sendMessageToClients(MSG_SET_VALUE);
+                    break;
+                case MSN_SEND_DANGER_TRAP:
+                    //new SendTrap().execute();
+                    break;
+                default:
+                    super.handleMessage(msg);
+            }
+        }
+    }
+
+    private void sendMessageToClients(int msgCode) {
+        for (int i=mClients.size()-1; i>=0; i--) {
+            try {
+                mClients.get(i).send(Message.obtain(null,
+                        msgCode, 0, 0));
+            } catch (RemoteException e) {
+                // The client is dead.  Remove it from the list;
+                // we are going through the list from back to front
+                // so this is safe to do inside the loop.
+                mClients.remove(i);
+            }
+        }
+    }
+
+
     @Override
     public void onCreate() {
         //timer = new Timer();
@@ -56,27 +106,29 @@ public class AgentService extends Service implements CommandResponder {
 
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        //return mMessenger.getBinder();
-        return null;
+        return mMessenger.getBinder();
     }
 
     @Override
     public void onDestroy() {
+        try {
+            snmp.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private class AgentListener extends Thread {
         public void run() {
             try {
-
                 initSnmp();
-
                 snmp.listen();
-
+                Log.i("LocalService", "Listening on" + snmp.toString());
             }  catch (IOException e) {
                 e.printStackTrace();
             }
@@ -84,13 +136,27 @@ public class AgentService extends Service implements CommandResponder {
 
         private void initSnmp(){
             try {
-                TransportMapping transport;
-                transport = new DefaultUdpTransportMapping(new UdpAddress("0.0.0.0/" + SNMP_PORT));
-
-                snmp = new Snmp(transport);
+                Address targetAddress = GenericAddress.parse("tcp:0.0.0.0/9999");
+                TransportMapping tm = TransportMappings.getInstance().createTransportMapping(targetAddress);
+                //TransportMapping transport = new DefaultTcpTransportMapping();
+                snmp = new Snmp(tm);
+                SecurityProtocols.getInstance().addDefaultProtocols();
+                MessageDispatcher disp = snmp.getMessageDispatcher();
+                disp.addMessageProcessingModel(new MPv1());
+                disp.addMessageProcessingModel(new MPv2c());
+                snmp.addTransportMapping(tm);
+                OctetString localEngineID = new OctetString(
+                        MPv3.createLocalEngineID());
+                // For command generators, you may use the following code to avoid
+                // engine ID clashes:
+                // MPv3.createLocalEngineID(
+                //   new OctetString("MyUniqueID"+System.currentTimeMillis())));
+                USM usm = new USM(SecurityProtocols.getInstance(), localEngineID, 0);
+                disp.addMessageProcessingModel(new MPv3(usm));
+                //snmp.listen();
                 snmp.addCommandResponder(AgentService.this);
 
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -98,6 +164,7 @@ public class AgentService extends Service implements CommandResponder {
 
     @Override
     public synchronized void processPdu(CommandResponderEvent commandResponderEvent) {
+        Log.i("LocalService", "processPdu");
         PDU command = (PDU) commandResponderEvent.getPDU().clone();
         if (command != null) {
             lastRequestReceived = command.toString() + " " + commandResponderEvent.getPeerAddress();
@@ -118,9 +185,9 @@ public class AgentService extends Service implements CommandResponder {
         // Specify receiver
         CommunityTarget target = new CommunityTarget();
         target.setCommunity(new OctetString("public"));
-        target.setVersion(SnmpConstants.version1);
+        target.setVersion(SnmpConstants.version2c);
         target.setAddress(address);
-        target.setRetries(0);
+        target.setRetries(1);
         target.setTimeout(1500);
 
         try {

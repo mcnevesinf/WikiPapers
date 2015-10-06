@@ -1,5 +1,6 @@
 package br.ufrgs.inf01059.wikipapers;
 
+import br.ufrgs.inf01059.wikipapers.SnmpBaseAgent.SnmpBaseAgent;
 import br.ufrgs.inf01059.wikipapers.model.NotesDAO;
 import android.app.SearchManager;
 import android.content.ComponentName;
@@ -21,6 +22,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
