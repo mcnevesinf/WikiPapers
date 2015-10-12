@@ -1,8 +1,10 @@
 package br.ufrgs.inf01059.wikipapers.SnmpAgent;
 
-
+import android.app.Activity;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.*;
 import android.util.Log;
 import org.snmp4j.*;
@@ -11,6 +13,7 @@ import org.snmp4j.agent.DuplicateRegistrationException;
 import org.snmp4j.agent.MOGroup;
 import org.snmp4j.agent.MOServer;
 import org.snmp4j.agent.ManagedObject;
+import org.snmp4j.agent.mo.snmp.RowStatus;
 import org.snmp4j.agent.mo.snmp.SnmpCommunityMIB;
 import org.snmp4j.agent.mo.snmp.SnmpNotificationMIB;
 import org.snmp4j.agent.mo.snmp.SnmpTargetMIB;
@@ -25,7 +28,9 @@ import org.snmp4j.security.USM;
 import org.snmp4j.smi.*;
 import org.snmp4j.transport.TransportMappings;
 import org.snmp4j.agent.BaseAgent;
+import org.snmp4j.agent.mo.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Timer;
@@ -33,84 +38,63 @@ import java.util.TimerTask;
 
 public class AgentService extends Service {
 
-    /** Keeps track of all current registered clients. */
-    ArrayList<Messenger> mClients = new ArrayList<Messenger>();
-    /** Holds last value set by a client. */
-    int mValue = 0;
+    private SnmpAgent snmp_agent;
 
-    public static final int MSG_REGISTER_CLIENT = 1;
-    public static final int MSG_UNREGISTER_CLIENT = 2;
-    public static final int MSG_SET_VALUE = 3;
-    public static final int MSG_SNMP_REQUEST_RECEIVED = 4;
-    public static final int MSN_SEND_DANGER_TRAP = 5;
-    public static final int MSG_MANAGER_MESSAGE_RECEIVED = 6;
-
-    public static String lastRequestReceived = "";
-
-    private Snmp snmp;
-    protected MOServer server;
-    private static final int SNMP_PORT = 32150;
-
-    //private MIBTree MIB_MAP;
     private Timer timer;
-
-    /**
-     * Target we publish for clients to send messages to IncomingHandler.
-     */
-    final Messenger mMessenger = new Messenger(new IncomingHandler());
-
-    /**
-     * Handler of incoming messages from clients.
-     */
-    class IncomingHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MSG_REGISTER_CLIENT:
-                    mClients.add(msg.replyTo);
-                    break;
-                case MSG_UNREGISTER_CLIENT:
-                    mClients.remove(msg.replyTo);
-                    break;
-                case MSG_SET_VALUE:
-                    mValue = msg.arg1;
-                    sendMessageToClients(MSG_SET_VALUE);
-                    break;
-                case MSN_SEND_DANGER_TRAP:
-                    //new SendTrap().execute();
-                    break;
-                default:
-                    super.handleMessage(msg);
-            }
-        }
-    }
-
-    private void sendMessageToClients(int msgCode) {
-        for (int i=mClients.size()-1; i>=0; i--) {
-            try {
-                mClients.get(i).send(Message.obtain(null,
-                        msgCode, 0, 0));
-            } catch (RemoteException e) {
-                // The client is dead.  Remove it from the list;
-                // we are going through the list from back to front
-                // so this is safe to do inside the loop.
-                mClients.remove(i);
-            }
-        }
-    }
-
     @Override
     public void onCreate() {
-        //timer = new Timer();
-        //timer.scheduleAtFixedRate(new RefreshMIBData(), 0, 50000);
-        //new AgentListener().start();
         try {
-            SnmpAgent sa = new SnmpAgent("0.0.0.0/9999");
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+            File file1 = File.createTempFile("temp1", null, this.getApplicationContext().getCacheDir());
+            File file2 = File.createTempFile("temp2", null, this.getApplicationContext().getCacheDir());
+            snmp_agent = new SnmpAgent("0.0.0.0/9999", file1, file2);
+
             //sa.initTransportMappings();
-            sa.start();
+            snmp_agent.start();
+            snmp_agent.unregisterManagedObject(snmp_agent.getSnmpv2MIB());
+
+            // Register a system description, use one from you product environment
+            // to test with
+            OID notes = new OID(new int[] {1,3,6,1,4,1,31337});
+            //sa.registerManagedObject(new MOScalar(sysDescr,MOAccessImpl.ACCESS_READ_ONLY,new OctetString((String)"MySystemDescr")));
+
+            MOTableBuilder builder = new MOTableBuilder(notes)
+                    .addColumnType(SMIConstants.SYNTAX_INTEGER,MOAccessImpl.ACCESS_READ_ONLY)
+                    .addColumnType(SMIConstants.SYNTAX_OCTET_STRING,MOAccessImpl.ACCESS_READ_ONLY)
+                    .addColumnType(SMIConstants.SYNTAX_INTEGER,MOAccessImpl.ACCESS_READ_ONLY)
+                    .addColumnType(SMIConstants.SYNTAX_INTEGER,MOAccessImpl.ACCESS_READ_ONLY)
+                    .addColumnType(SMIConstants.SYNTAX_GAUGE32,MOAccessImpl.ACCESS_READ_ONLY)
+                    .addColumnType(SMIConstants.SYNTAX_OCTET_STRING,MOAccessImpl.ACCESS_READ_ONLY)
+                    .addColumnType(SMIConstants.SYNTAX_INTEGER,MOAccessImpl.ACCESS_READ_ONLY)
+                    .addColumnType(SMIConstants.SYNTAX_INTEGER,MOAccessImpl.ACCESS_READ_ONLY)
+                            // Normally you would begin loop over you two domain objects here
+                    .addRowValue(new Integer32(1))
+                    .addRowValue(new OctetString("loopback"))
+                    .addRowValue(new Integer32(24))
+                    .addRowValue(new Integer32(1500))
+                    .addRowValue(new Gauge32(10000000))
+                    .addRowValue(new OctetString("00:00:00:00:01"))
+                    .addRowValue(new Integer32(1500))
+                    .addRowValue(new Integer32(1500))
+                            //next row
+                    .addRowValue(new Integer32(2))
+                    .addRowValue(new OctetString("eth0"))
+                    .addRowValue(new Integer32(24))
+                    .addRowValue(new Integer32(1500))
+                    .addRowValue(new Gauge32(10000000))
+                    .addRowValue(new OctetString("00:00:00:00:02"))
+                    .addRowValue(new Integer32(1500))
+                    .addRowValue(new Integer32(1500));
+
+            snmp_agent.registerManagedObject(builder.build());
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new RefreshMIBData(), 0, 10000);
     }
 
     @Override
@@ -124,15 +108,23 @@ public class AgentService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        return mMessenger.getBinder();
+        //return mMessenger.getBinder();
+        return null;
     }
 
     @Override
     public void onDestroy() {
-        try {
-            snmp.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        snmp_agent.stop();
+    }
+
+    class RefreshMIBData extends TimerTask {
+
+        public RefreshMIBData(){
+        }
+
+        public void run() {
+            OID notes = new OID(new int[] {1,3,6,1,4,1,31337});
+            Log.i("LocalService", "Timer running");
         }
     }
 
@@ -145,11 +137,11 @@ public class AgentService extends Service {
 
         private String address;
 
-        public SnmpAgent(String address) throws IOException {
+        public SnmpAgent(String address, File temp1, File temp2) throws IOException {
 
             // These files does not exist and are not used but has to be specified
             // Read snmp4j docs for more info
-            super(null, null,
+            super(temp1, temp2,
                     new CommandProcessor(
                             new OctetString(MPv3.createLocalEngineID())));
             this.address = address;
@@ -161,6 +153,12 @@ public class AgentService extends Service {
          */
         @Override
         protected void registerManagedObjects() {
+            /*NotesMIB nm = new NotesMIB();
+            try {
+                nm.registerMOs(server, new OctetString("public"));
+            } catch (DuplicateRegistrationException e) {
+                e.printStackTrace();
+            }*/
         }
 
         /**
@@ -247,7 +245,7 @@ public class AgentService extends Service {
 
         @Override
         protected void addCommunities(SnmpCommunityMIB communityMIB) {
-            /*Variable[] com2sec = new Variable[] {
+            Variable[] com2sec = new Variable[] {
                     new OctetString("public"), // community name
                     new OctetString("cpublic"), // security name
                     getAgent().getContextEngineID(), // local engine ID
@@ -256,73 +254,9 @@ public class AgentService extends Service {
                     new Integer32(StorageType.nonVolatile), // storage type
                     new Integer32(RowStatus.active) // row status
             };
-            MOTableRow row = communityMIB.getSnmpCommunityEntry().createRow(
+            SnmpCommunityMIB.SnmpCommunityEntryRow row = communityMIB.getSnmpCommunityEntry().createRow(
                     new OctetString("public2public").toSubIndex(true), com2sec);
-            communityMIB.getSnmpCommunityEntry().addRow(row);*/
+            communityMIB.getSnmpCommunityEntry().addRow(row);
         }
-    }
-
-    private class AgentCommandResponder implements CommandResponder {
-        @Override
-        public synchronized void processPdu(CommandResponderEvent commandResponderEvent) {
-            Log.i("LocalService", "processPdu");
-            PDU command = (PDU) commandResponderEvent.getPDU().clone();
-            if (command != null) {
-                lastRequestReceived = command.toString() + " " + commandResponderEvent.getPeerAddress();
-                //sendMessageToClients(MSG_SNMP_REQUEST_RECEIVED);
-                if (command.getType() == PDU.GET) {
-                    handleGetRequest(command);
-                } else if (command.getType() == PDU.GETNEXT) {
-                    handleGetNextRequest(command);
-                }
-                Address address = commandResponderEvent.getPeerAddress();
-                sendResponse(address, command);
-            }
-        }
-
-        private void sendResponse(Address address, PDU command) {
-            command.setType(PDU.RESPONSE);
-            System.out.println(command.toString());
-            // Specify receiver
-            CommunityTarget target = new CommunityTarget();
-            target.setCommunity(new OctetString("public"));
-            target.setVersion(SnmpConstants.version2c);
-            target.setAddress(address);
-            target.setRetries(1);
-            target.setTimeout(1500);
-
-            try {
-                snmp.send(command, target);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        private void handleGetNextRequest(PDU command) {
-            VariableBinding varBind;
-            for (int i = 0; i < command.size(); i++) {
-                varBind = command.get(i);
-                //command.set(i, answerForGetNext(varBind.getOid()));
-            }
-        }
-
-        //private VariableBinding answerForGetNext(OID oid) {
-        //MIBTree MIB_MAP = MIBTree.getInstance();
-        //return MIB_MAP.getNext(oid);
-        //}
-
-        private void handleGetRequest(PDU command) {
-            VariableBinding varBind;
-            for (int i = 0; i < command.size(); i++) {
-                varBind = command.get(i);
-                //varBind.setVariable(answerForGet(varBind.getOid()));
-            }
-        }
-
-        //private Variable answerForGet(OID oid) {
-        //MIBTree MIB_MAP = MIBTree.getInstance();
-        //VariableBinding vb = MIB_MAP.get(oid);
-        //return vb.getVariable();
-        //}
     }
 }
