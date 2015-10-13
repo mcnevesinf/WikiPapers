@@ -40,8 +40,9 @@ public class AgentService extends Service {
 
     private SnmpAgent snmp_agent;
 
-    private MOTable table;
-    private MOGroup group;
+    private MOTable notesTable;
+    private MOScalar numberOfNotes;
+    private MOScalar numberOfNotesSynced;
 
     private Timer timer;
     @Override
@@ -60,39 +61,24 @@ public class AgentService extends Service {
 
             // Register a system description, use one from you product environment
             // to test with
-            OID notes = new OID(new int[] {1,3,6,1,4,1,31337});
-            //sa.registerManagedObject(new MOScalar(sysDescr,MOAccessImpl.ACCESS_READ_ONLY,new OctetString((String)"MySystemDescr")));
-
-            MOTableBuilder builder = new MOTableBuilder(notes)
-                    .addColumnType(SMIConstants.SYNTAX_INTEGER,MOAccessImpl.ACCESS_READ_ONLY)
+            OID numberOfNotesOid = new OID(new int[] {1,3,6,1,3,1,1,0});
+            OID numberOfNotesSyncedOid = new OID(new int[] {1,3,6,1,3,1,2,0});
+            OID notesTableOid = new OID(new int[] {1,3,6,1,3,1,3});
+            numberOfNotes =  MOScalarFactory.createReadOnly(numberOfNotesOid, 0);
+            numberOfNotesSynced =  MOScalarFactory.createReadWrite(numberOfNotesSyncedOid, 0);
+            snmp_agent.registerManagedObject(numberOfNotes);
+            snmp_agent.registerManagedObject(numberOfNotesSynced);
+            MOTableBuilder notesTableBuilder = new MOTableBuilder(notesTableOid)
                     .addColumnType(SMIConstants.SYNTAX_OCTET_STRING,MOAccessImpl.ACCESS_READ_ONLY)
-                    .addColumnType(SMIConstants.SYNTAX_INTEGER,MOAccessImpl.ACCESS_READ_ONLY)
-                    .addColumnType(SMIConstants.SYNTAX_INTEGER,MOAccessImpl.ACCESS_READ_ONLY)
-                    .addColumnType(SMIConstants.SYNTAX_GAUGE32,MOAccessImpl.ACCESS_READ_ONLY)
                     .addColumnType(SMIConstants.SYNTAX_OCTET_STRING,MOAccessImpl.ACCESS_READ_ONLY)
-                    .addColumnType(SMIConstants.SYNTAX_INTEGER,MOAccessImpl.ACCESS_READ_ONLY)
-                    .addColumnType(SMIConstants.SYNTAX_INTEGER,MOAccessImpl.ACCESS_READ_ONLY)
                             // Normally you would begin loop over you two domain objects here
-                    .addRowValue(new Integer32(1))
-                    .addRowValue(new OctetString("loopback"))
-                    .addRowValue(new Integer32(24))
-                    .addRowValue(new Integer32(1500))
-                    .addRowValue(new Gauge32(10000000))
-                    .addRowValue(new OctetString("00:00:00:00:01"))
-                    .addRowValue(new Integer32(1500))
-                    .addRowValue(new Integer32(1500))
+                    .addRowValue(new OctetString("Title1"))
+                    .addRowValue(new OctetString("Content1"))
                             //next row
-                    .addRowValue(new Integer32(2))
-                    .addRowValue(new OctetString("eth0"))
-                    .addRowValue(new Integer32(24))
-                    .addRowValue(new Integer32(1500))
-                    .addRowValue(new Gauge32(10000000))
-                    .addRowValue(new OctetString("00:00:00:00:02"))
-                    .addRowValue(new Integer32(1500))
-                    .addRowValue(new Integer32(1500));
-            table = builder.build();
-            //group.registerMOs(snmp_agent);
-            snmp_agent.registerManagedObject(table);
+                    .addRowValue(new OctetString("Title2"))
+                    .addRowValue(new OctetString("Content2"));
+            notesTable = notesTableBuilder.build();
+            snmp_agent.registerManagedObject(notesTable);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -128,9 +114,9 @@ public class AgentService extends Service {
 
         public void run() {
             //OID notes = new OID(new int[] {1,3,6,1,4,1,31337});
-            snmp_agent.getServer().unregister(table, null);
-            snmp_agent.registerManagedObject(table);
-            Log.i("LocalService", "Timer running");
+           // snmp_agent.getServer().unregister(table, null);
+            //snmp_agent.registerManagedObject(table);
+            Log.i("LocalService", "Timer running, total notes:" + numberOfNotesSynced.getValue().toString());
         }
     }
 
