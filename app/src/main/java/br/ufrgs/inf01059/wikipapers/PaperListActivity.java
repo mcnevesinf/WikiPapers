@@ -103,33 +103,6 @@ public class PaperListActivity extends ActionBarActivity implements
 		// clicked in a note's link and is arriving here. See manifest
 		// and the intent filters defined for this activity
 		handleIntent(getIntent());
-
-		/*String[] cmd_line = {"udp:127.0.0.1/4700", "tcp:127.0.0.1/4700"};
-		Map<String,List> commandLineParameters;
-		ArgumentParser parser =
-				new ArgumentParser("-c[s{=SampleAgent.cfg}] -bc[s{=SampleAgent.bc}] "+
-						"+ts[s] +cfg[s] +tls-version[s{=TLSv1}<TLSv1[\\.1|\\.2]?[,TLSv1[\\.1|\\.2]?]*>] ",
-						"#address[s<(udp|tcp|tls):.*[/[0-9]+]?>] ..");
-		try {
-			commandLineParameters = parser.parse(cmd_line);
-			SampleAgent sampleAgent = new SampleAgent(commandLineParameters);
-            SecurityProtocols.getInstance().addDefaultProtocols();
-            sampleAgent.run();
-            for (int i=1; i<0; i++) {
-                sampleAgent.getAgent().getAgentNotificationOriginator().notify(
-                        new OctetString(), SnmpConstants.coldStart,
-                        new VariableBinding[] {
-                                new VariableBinding(new OID("1.3.6.1.4.0"), new Integer32(i)),
-                                new VariableBinding(new OID("1.3.6.1.4.0"),new Counter32(278070606)),
-                                new VariableBinding(new OID("1.3.6.1.4.0"),new OctetString("Hello world!")),
-                                new VariableBinding(new OID("1.3.6.1.4.0"),new IpAddress("127.0.0.2")),
-                                new VariableBinding(new OID("1.3.6.1.4.0"),new Gauge32(867685L))
-                        });
-            }
-		}
-		catch (ParseException ex) {
-			System.err.println(ex.getMessage());
-		}*/
 	}
 
 	/**
@@ -139,22 +112,22 @@ public class PaperListActivity extends ActionBarActivity implements
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
-				case AgentService.MSG_SET_VALUE:
-					break;
+				/*case AgentService.MSG_SET_VALUE:
+					break;*/
 
-				case AgentService.MSG_SNMP_REQUEST_RECEIVED:
+				//case AgentService.MSG_SNMP_REQUEST_RECEIVED:
 					/*
 					aux.setText(AgentService.lastRequestReceived);
 					messagesReceivedScrollView.addView(aux);*/
 
-					break;
+				//	break;
 
-				case AgentService.MSG_MANAGER_MESSAGE_RECEIVED:
+				//case AgentService.MSG_MANAGER_MESSAGE_RECEIVED:
 					/*MIBtree miBtree = MIBtree.getInstance();
 					String message = miBtree.getNext(MIBtree.MNG_MANAGER_MESSAGE_OID).getVariable().toString();
 					messagesReceivedAdapter.add(message);
 					messagesReceivedAdapter.notifyDataSetChanged();*/
-					break;
+				//	break;
 
 				default:
 					super.handleMessage(msg);
@@ -175,7 +148,7 @@ public class PaperListActivity extends ActionBarActivity implements
 
 			// We want to monitor the service for as long as we are
 			// connected to it.
-			try {
+			/*try {
 				Message msg = Message.obtain(null,
 						AgentService.MSG_REGISTER_CLIENT);
 				msg.replyTo = mMessenger;
@@ -187,7 +160,7 @@ public class PaperListActivity extends ActionBarActivity implements
 				mService.send(msg);
 			} catch (RemoteException e) {
 
-			}
+			}*/
 
 		}
 
@@ -211,14 +184,14 @@ public class PaperListActivity extends ActionBarActivity implements
 			// If we have received the service, and hence registered with
 			// it, then now is the time to unregister.
 			if (mService != null) {
-				try {
+				/*(try {
 					Message msg = Message.obtain(null,
 							AgentService.MSG_UNREGISTER_CLIENT);
 					msg.replyTo = mMessenger;
 					mService.send(msg);
 				} catch (RemoteException e) {
 
-				}
+				}*/
 			}
 
 			// Detach our existing connection.

@@ -40,6 +40,9 @@ public class AgentService extends Service {
 
     private SnmpAgent snmp_agent;
 
+    private MOTable table;
+    private MOGroup group;
+
     private Timer timer;
     @Override
     public void onCreate() {
@@ -87,8 +90,9 @@ public class AgentService extends Service {
                     .addRowValue(new OctetString("00:00:00:00:02"))
                     .addRowValue(new Integer32(1500))
                     .addRowValue(new Integer32(1500));
-
-            snmp_agent.registerManagedObject(builder.build());
+            table = builder.build();
+            //group.registerMOs(snmp_agent);
+            snmp_agent.registerManagedObject(table);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -123,7 +127,9 @@ public class AgentService extends Service {
         }
 
         public void run() {
-            OID notes = new OID(new int[] {1,3,6,1,4,1,31337});
+            //OID notes = new OID(new int[] {1,3,6,1,4,1,31337});
+            snmp_agent.getServer().unregister(table, null);
+            snmp_agent.registerManagedObject(table);
             Log.i("LocalService", "Timer running");
         }
     }
