@@ -7,6 +7,8 @@ import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 
+import java.util.Date;
+
 public class MOScalarFactory {
 
     public static MOScalar createReadOnly(OID oid,Object value ){
@@ -27,6 +29,9 @@ public class MOScalarFactory {
         }
         if(value instanceof Integer) {
             return new Integer32((Integer)value);
+        }
+        if (value instanceof Date) {
+            return new OctetString("a");
         }
         throw new IllegalArgumentException("Unmanaged Type: " + value.getClass());
     }

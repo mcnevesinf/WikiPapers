@@ -1,17 +1,13 @@
 package br.ufrgs.inf01059.wikipapers.SnmpAgent;
 
-import android.app.Activity;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.*;
 import android.util.Log;
 import org.snmp4j.*;
 import org.snmp4j.agent.CommandProcessor;
 import org.snmp4j.agent.DuplicateRegistrationException;
 import org.snmp4j.agent.MOGroup;
-import org.snmp4j.agent.MOServer;
 import org.snmp4j.agent.ManagedObject;
 import org.snmp4j.agent.mo.snmp.RowStatus;
 import org.snmp4j.agent.mo.snmp.SnmpCommunityMIB;
@@ -21,7 +17,6 @@ import org.snmp4j.agent.mo.snmp.StorageType;
 import org.snmp4j.agent.mo.snmp.VacmMIB;
 import org.snmp4j.agent.security.MutableVACM;
 import org.snmp4j.mp.MPv3;
-import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.security.SecurityModel;
 import org.snmp4j.security.USM;
@@ -32,17 +27,21 @@ import org.snmp4j.agent.mo.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import br.ufrgs.inf01059.wikipapers.model.Note;
+import br.ufrgs.inf01059.wikipapers.model.NotesDAO;
 
 public class AgentService extends Service {
 
     private SnmpAgent snmp_agent;
 
-    private MOTable notesTable;
+    private MOTable notesTable = null;
     private MOScalar numberOfNotes;
     private MOScalar numberOfNotesSynced;
+    private MOScalar lastSync;
 
     private Timer timer;
     @Override
@@ -59,26 +58,18 @@ public class AgentService extends Service {
             snmp_agent.start();
             snmp_agent.unregisterManagedObject(snmp_agent.getSnmpv2MIB());
 
-            // Register a system description, use one from you product environment
-            // to test with
             OID numberOfNotesOid = new OID(new int[] {1,3,6,1,3,1,1,0});
             OID numberOfNotesSyncedOid = new OID(new int[] {1,3,6,1,3,1,2,0});
-            OID notesTableOid = new OID(new int[] {1,3,6,1,3,1,3});
-            numberOfNotes =  MOScalarFactory.createReadOnly(numberOfNotesOid, 0);
+            OID lastSyncOid = new OID(new int[] {1,3,6,1,3,1,3,0});
+
+            List<Note> Notes = NotesDAO.getNotes(getApplicationContext());
+            numberOfNotes =  MOScalarFactory.createReadOnly(numberOfNotesOid, Notes.size());
             numberOfNotesSynced =  MOScalarFactory.createReadWrite(numberOfNotesSyncedOid, 0);
+            lastSync =  MOScalarFactory.createReadWrite(lastSyncOid, 0);
             snmp_agent.registerManagedObject(numberOfNotes);
             snmp_agent.registerManagedObject(numberOfNotesSynced);
-            MOTableBuilder notesTableBuilder = new MOTableBuilder(notesTableOid)
-                    .addColumnType(SMIConstants.SYNTAX_OCTET_STRING,MOAccessImpl.ACCESS_READ_ONLY)
-                    .addColumnType(SMIConstants.SYNTAX_OCTET_STRING,MOAccessImpl.ACCESS_READ_ONLY)
-                            // Normally you would begin loop over you two domain objects here
-                    .addRowValue(new OctetString("Title1"))
-                    .addRowValue(new OctetString("Content1"))
-                            //next row
-                    .addRowValue(new OctetString("Title2"))
-                    .addRowValue(new OctetString("Content2"));
-            notesTable = notesTableBuilder.build();
-            snmp_agent.registerManagedObject(notesTable);
+            snmp_agent.registerManagedObject(lastSync);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -116,7 +107,29 @@ public class AgentService extends Service {
             //OID notes = new OID(new int[] {1,3,6,1,4,1,31337});
            // snmp_agent.getServer().unregister(table, null);
             //snmp_agent.registerManagedObject(table);
-            Log.i("LocalService", "Timer running, total notes:" + numberOfNotesSynced.getValue().toString());
+
+            //Log.i("LocalService", "Timer running, total notes:" + numberOfNotesSynced.getValue().toString());
+
+            OID notesTableOid = new OID(new int[] {1,3,6,1,3,1,4});
+            List<Note> Notes = NotesDAO.getNotes(getApplicationContext());
+
+            if (notesTable != null)
+                snmp_agent.getServer().unregister(notesTable, null);
+
+            numberOfNotes.setValue(new Integer32(Notes.size()));
+            MOTableBuilder notesTableBuilder = new MOTableBuilder(notesTableOid)
+                    .addColumnType(SMIConstants.SYNTAX_INTEGER,MOAccessImpl.ACCESS_READ_ONLY)
+                    .addColumnType(SMIConstants.SYNTAX_OCTET_STRING, MOAccessImpl.ACCESS_READ_ONLY)
+                    .addColumnType(SMIConstants.SYNTAX_OCTET_STRING, MOAccessImpl.ACCESS_READ_ONLY)
+                    .addColumnType(SMIConstants.SYNTAX_COUNTER64, MOAccessImpl.ACCESS_READ_ONLY);
+            for (Note n : Notes) {
+                notesTableBuilder.addRowValue(new Integer32(Integer.parseInt(n.id)));
+                notesTableBuilder.addRowValue(new OctetString(n.title));
+                notesTableBuilder.addRowValue(new OctetString(n.content));
+                notesTableBuilder.addRowValue(new Counter64(n.creationDate.getTime() / 1000));
+            }
+            notesTable = notesTableBuilder.build();
+            snmp_agent.registerManagedObject(notesTable);
         }
     }
 
@@ -186,9 +199,23 @@ public class AgentService extends Service {
                     new OctetString("fullWriteView"), new OctetString(
                             "fullNotifyView"), StorageType.nonVolatile);
 
-            vacm.addViewTreeFamily(new OctetString("fullReadView"), new OID("1.3"),
+            vacm.addGroup(SecurityModel.SECURITY_MODEL_SNMPv2c, new OctetString(
+                            "cpublic"), new OctetString("v1v2group"),
+                    StorageType.nonVolatile);
+
+            vacm.addAccess(new OctetString("v1v2group"), new OctetString("private"),
+                    SecurityModel.SECURITY_MODEL_ANY, SecurityLevel.AUTH_PRIV,
+                    MutableVACM.VACM_MATCH_PREFIX, new OctetString("fullReadView"),
+                    new OctetString("fullWriteView"), new OctetString(
+                            "fullNotifyView"), StorageType.nonVolatile);
+
+            vacm.addViewTreeFamily(new OctetString("fullReadView"), new OID("1.3.6.1.3"),
                     new OctetString(), VacmMIB.vacmViewIncluded,
                     StorageType.nonVolatile);
+            vacm.addViewTreeFamily(new OctetString("fullWriteView"), new OID("1.3.6.1.3"),
+                    new OctetString(), VacmMIB.vacmViewIncluded,
+                    StorageType.nonVolatile);
+
         }
 
         /**
@@ -247,8 +274,22 @@ public class AgentService extends Service {
                     new Integer32(RowStatus.active) // row status
             };
             SnmpCommunityMIB.SnmpCommunityEntryRow row = communityMIB.getSnmpCommunityEntry().createRow(
-                    new OctetString("public2public").toSubIndex(true), com2sec);
+                    new OctetString("public").toSubIndex(true), com2sec);
             communityMIB.getSnmpCommunityEntry().addRow(row);
+
+            Variable[] com2sec2 = new Variable[] {
+                    new OctetString("private"), //community name
+                    new OctetString("cprivate"), // security name
+                    getAgent().getContextEngineID(), // local engine ID
+                    new OctetString("private"), // default context name
+                    new OctetString(), // transport tag
+                    new Integer32(StorageType.nonVolatile), // storage type
+                    new Integer32(RowStatus.active) // row status
+            };
+
+            SnmpCommunityMIB.SnmpCommunityEntryRow row2 = communityMIB.getSnmpCommunityEntry().createRow(
+                    new OctetString("private").toSubIndex(true), com2sec);
+            communityMIB.getSnmpCommunityEntry().addRow(row2);
         }
     }
 }
