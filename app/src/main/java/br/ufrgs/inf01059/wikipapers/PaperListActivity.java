@@ -1,6 +1,5 @@
 package br.ufrgs.inf01059.wikipapers;
 
-//import br.ufrgs.inf01059.wikipapers.SnmpBaseAgent.SnmpBaseAgent;
 import br.ufrgs.inf01059.wikipapers.model.NotesDAO;
 import android.app.SearchManager;
 import android.content.ComponentName;
@@ -14,37 +13,16 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
-import android.os.RemoteException;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.List;
-import java.util.Map;
 
 import br.ufrgs.inf01059.wikinotes.R;
 import br.ufrgs.inf01059.wikipapers.SnmpAgent.AgentService;
-import br.ufrgs.inf01059.wikipapers.SnmpAgent.*;
 
-//import org.apache.http.ParseException;
-import org.snmp4j.*;
-import org.snmp4j.agent.*;
-import org.snmp4j.agent.cfg.*;
-import org.snmp4j.agent.io.*;
-import org.snmp4j.agent.io.prop.*;
-import org.snmp4j.agent.mo.*;
-import org.snmp4j.log.*;
-import org.snmp4j.mp.*;
-import org.snmp4j.smi.*;
-import org.snmp4j.transport.*;
-import org.snmp4j.util.*;
-import org.snmp4j.security.SecurityProtocols;
 
 /**
  * An activity representing a list of Notes. This activity has different

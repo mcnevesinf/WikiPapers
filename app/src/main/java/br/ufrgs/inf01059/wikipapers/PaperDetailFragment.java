@@ -50,8 +50,6 @@ public class PaperDetailFragment extends Fragment {
 			String noteId = arguments.getString(ARG_ITEM_ID);
 			if(noteId != null)
 			      mNote = NotesDAO.getNote(getActivity(), Integer.parseInt(noteId));
-			      
-					
 		}
 			
 	}
@@ -68,16 +66,17 @@ public class PaperDetailFragment extends Fragment {
 
 			StringBuilder stb = new StringBuilder();
 			String[] split = mNote.content.split(" ");
+			//String[] split = mNote.content.replaceAll("[^a-zA-Z ]", "").toLowerCase().split("\\s+");
 			for (int i = 0; i < split.length; i++) {
 				Note note = null;
 				for (int j = 0; j < notes.size(); j++) {
-					if (split[i].equalsIgnoreCase(notes.get(j).title)) {
+					if (split[i].replaceAll("[^a-zA-Z ]", "").equalsIgnoreCase(notes.get(j).title)) {
 						note = notes.get(j);
 						break;
 					}
 				}
 
-				if (note == null) {
+				if (note == null || note.id.equalsIgnoreCase(mNote.id)) {
 					stb.append(split[i]);
 				} else {
 					// linkify
