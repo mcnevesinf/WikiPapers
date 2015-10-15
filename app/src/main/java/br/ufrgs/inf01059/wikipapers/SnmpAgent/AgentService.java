@@ -1,8 +1,11 @@
 package br.ufrgs.inf01059.wikipapers.SnmpAgent;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.*;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import org.snmp4j.*;
 import org.snmp4j.agent.CommandProcessor;
@@ -31,6 +34,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import br.ufrgs.inf01059.wikinotes.R;
 import br.ufrgs.inf01059.wikipapers.model.Note;
 import br.ufrgs.inf01059.wikipapers.model.NotesDAO;
 
@@ -39,11 +43,19 @@ public class AgentService extends Service {
     private SnmpAgent snmp_agent;
 
     private MOTable notesTable = null;
+    private MOScalar username;
     private MOScalar numberOfNotes;
     private MOScalar numberOfNotesSynced;
     private MOScalar lastSync;
 
+    private static OID usernameOid = new OID(new int[] {1,3,6,1,3,1,1,0});
+    private static OID numberOfNotesOid = new OID(new int[] {1,3,6,1,3,1,2,0});
+    private static OID numberOfNotesSyncedOid = new OID(new int[] {1,3,6,1,3,1,3,0});
+    private static OID lastSyncOid = new OID(new int[] {1,3,6,1,3,1,4,0});
+    private static OID notesTableOid = new OID(new int[] {1,3,6,1,3,1,5});
+
     private Timer timer;
+
     @Override
     public void onCreate() {
         try {
@@ -57,18 +69,6 @@ public class AgentService extends Service {
             //sa.initTransportMappings();
             snmp_agent.start();
             snmp_agent.unregisterManagedObject(snmp_agent.getSnmpv2MIB());
-
-            OID numberOfNotesOid = new OID(new int[] {1,3,6,1,3,1,1,0});
-            OID numberOfNotesSyncedOid = new OID(new int[] {1,3,6,1,3,1,2,0});
-            OID lastSyncOid = new OID(new int[] {1,3,6,1,3,1,3,0});
-
-            List<Note> Notes = NotesDAO.getNotes(getApplicationContext());
-            numberOfNotes =  MOScalarFactory.createReadOnly(numberOfNotesOid, Notes.size());
-            numberOfNotesSynced =  MOScalarFactory.createReadWrite(numberOfNotesSyncedOid, 0);
-            lastSync =  MOScalarFactory.createReadWrite(lastSyncOid, 0);
-            snmp_agent.registerManagedObject(numberOfNotes);
-            snmp_agent.registerManagedObject(numberOfNotesSynced);
-            snmp_agent.registerManagedObject(lastSync);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -95,6 +95,8 @@ public class AgentService extends Service {
 
     @Override
     public void onDestroy() {
+        timer.cancel();
+        timer.purge();
         snmp_agent.stop();
     }
 
@@ -104,17 +106,25 @@ public class AgentService extends Service {
         }
 
         public void run() {
-            //OID notes = new OID(new int[] {1,3,6,1,4,1,31337});
-           // snmp_agent.getServer().unregister(table, null);
-            //snmp_agent.registerManagedObject(table);
+            Context context = getApplicationContext();
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            List<Note> Notes = NotesDAO.getNotes(context);
 
-            //Log.i("LocalService", "Timer running, total notes:" + numberOfNotesSynced.getValue().toString());
-
-            OID notesTableOid = new OID(new int[] {1,3,6,1,3,1,4});
-            List<Note> Notes = NotesDAO.getNotes(getApplicationContext());
-
-            if (notesTable != null)
+            if (notesTable != null){
                 snmp_agent.getServer().unregister(notesTable, null);
+                username.setValue(new OctetString(prefs.getString("username", "Not set")));
+                numberOfNotes.setValue(new Integer32(Notes.size()));
+            }
+            else{
+                username = MOScalarFactory.createReadOnly(usernameOid,  prefs.getString("username", "Not Set"));
+                numberOfNotesSynced =  MOScalarFactory.createReadWrite(numberOfNotesSyncedOid, prefs.getInt("nSyncNotes", 0));
+                lastSync =  MOScalarFactory.createReadWrite(lastSyncOid, new Counter64(prefs.getInt("syncDate", 0)));
+                numberOfNotes =  MOScalarFactory.createReadOnly(numberOfNotesOid, Notes.size());
+                snmp_agent.registerManagedObject(username);
+                snmp_agent.registerManagedObject(numberOfNotes);
+                snmp_agent.registerManagedObject(numberOfNotesSynced);
+                snmp_agent.registerManagedObject(lastSync);
+            }
 
             numberOfNotes.setValue(new Integer32(Notes.size()));
             MOTableBuilder notesTableBuilder = new MOTableBuilder(notesTableOid)

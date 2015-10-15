@@ -2,6 +2,7 @@ package br.ufrgs.inf01059.wikipapers.SnmpAgent;
 
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOScalar;
+import org.snmp4j.smi.Counter64;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
@@ -32,6 +33,9 @@ public class MOScalarFactory {
         }
         if (value instanceof Date) {
             return new OctetString("a");
+        }
+        if (value instanceof Counter64) {
+            return (Counter64)value;
         }
         throw new IllegalArgumentException("Unmanaged Type: " + value.getClass());
     }

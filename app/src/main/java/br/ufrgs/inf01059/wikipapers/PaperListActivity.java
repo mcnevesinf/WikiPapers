@@ -13,9 +13,12 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -48,6 +51,9 @@ public class PaperListActivity extends ActionBarActivity implements
 	 */
 	private boolean mTwoPane;
 
+	private Intent service_intent;
+	SharedPreferences.OnSharedPreferenceChangeListener prefListener;
+
 	/** Messenger for communicating with service. */
 	Messenger mService = null;
 	/** Flag indicating whether we have called bind on the service. */
@@ -78,15 +84,41 @@ public class PaperListActivity extends ActionBarActivity implements
 
 		SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_id),
 																 Context.MODE_PRIVATE);
-		SharedPreferences.Editor editor = sharedPref.edit();
-		editor.putInt("nSyncNotes", 0);
-		editor.putInt("syncDate", 0);
-		editor.commit();
+		if (sharedPref.contains("nSyncNotes") == false) {
+			SharedPreferences.Editor editor = sharedPref.edit();
+			editor.putInt("nSyncNotes", 0);
+			editor.putInt("syncDate", 0);
+			editor.commit();
+		}
 
-		Intent intent = new Intent(this, AgentService.class);
-		startService(intent);
-		doBindAgentService();
+		service_intent = new Intent(this, AgentService.class);
 
+		SharedPreferences sharedPrefSettings = PreferenceManager.getDefaultSharedPreferences(this);
+		prefListener =
+				new SharedPreferences.OnSharedPreferenceChangeListener() {
+					public void onSharedPreferenceChanged(SharedPreferences prefs,
+														  String key) {
+						if (key.equals("syncMode")) {
+							if (prefs.getBoolean("syncMode", false)){
+								startService(service_intent);
+								doBindAgentService();
+							}
+							else{
+                                doUnbindAgentService();
+								stopService(service_intent);
+							}
+						}
+					}
+				};
+		sharedPrefSettings.registerOnSharedPreferenceChangeListener(prefListener);
+		if (sharedPrefSettings.getBoolean("syncMode", false)){
+			startService(service_intent);
+			doBindAgentService();
+		}
+        else{
+            doUnbindAgentService();
+            stopService(service_intent);
+        }
 		// Verifying if we are filtering a intent, which means someone
 		// clicked in a note's link and is arriving here. See manifest
 		// and the intent filters defined for this activity
