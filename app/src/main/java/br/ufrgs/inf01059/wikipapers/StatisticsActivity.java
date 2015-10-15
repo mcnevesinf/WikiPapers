@@ -15,6 +15,11 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
 import br.ufrgs.inf01059.wikinotes.R;
 import br.ufrgs.inf01059.wikipapers.model.Note;
 import br.ufrgs.inf01059.wikipapers.model.NotesDAO;
@@ -41,12 +46,22 @@ public class StatisticsActivity extends ActionBarActivity {
         screenText.append("Username: " + sharedPrefSettings.getString("username", "") + "\n");
 
         //Total of notes
+        Context context = getApplicationContext();
+        List<Note> Notes = NotesDAO.getNotes(context);
+        int nNotes = Notes.size();
+        screenText.append("Number of notes: " + nNotes + "\n");
 
         //Number of synchronized notes
         int nSyncNotes = sharedPref.getInt("nSyncNotes", 0);
         screenText.append("Number of notes synced: " + nSyncNotes + "\n");
 
         //Last synchronization date
+        int syncDate = sharedPref.getInt("syncDate", 0);
+        Long longSyncDate = new Long(syncDate);
+        Date unformattedDate = new Date(longSyncDate);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        String formattedDate = dateFormat.format(unformattedDate);
+        screenText.append("Synchronization date: " + formattedDate + "\n");
 
         TextView statsScreenTextView = (TextView) findViewById(R.id.usernameSettings);
         statsScreenTextView.setText(screenText.toString());
