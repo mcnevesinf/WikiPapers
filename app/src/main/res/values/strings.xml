@@ -16,6 +16,14 @@
     <string name="cancel">Cancel</string>
     <string name="note_title">Note title</string>
     <string name="note_content">Note content</string>
+    <string name="settings">Settings</string>
+    <string name="view_stats">Statistics</string>
+
+    <string name="pref_username">Click to set the username</string>
+    <string name="pref_sync">Allow connection with SNMP manager</string>
+    <!-- <string name="pref_clean">Delete all notes</string> -->
+    
+    <string name="preference_file_id">StatsPreferences</string>
     
 </resources>
 

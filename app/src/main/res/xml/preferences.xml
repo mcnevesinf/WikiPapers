@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:key="username"
+        android:title="Username"
+        android:summary="@string/pref_username"
+        android:defaultValue="DefaultUser"></EditTextPreference>
+
+    <SwitchPreference
+        android:key="syncMode"
+        android:title="SNMP sync"
+        android:summary="@string/pref_sync"
+        android:defaultValue="true"></SwitchPreference>
+
+    <!-- <Preference
+        android:key="cleanBase"
+        android:title="Clean"
+        android:summary="@string/pref_clean"/> -->
+
+</PreferenceScreen>

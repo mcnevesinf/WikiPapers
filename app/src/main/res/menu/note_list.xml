@@ -21,6 +21,19 @@
       android:icon="@drawable/ic_action_view_as_list"
       yourapp:showAsAction="ifRoom|withText"  >
    </item>
-   
+
+    <item
+        android:id="@+id/settings"
+        android:title="@string/settings"
+        android:icon="@drawable/ic_action_settings"
+        yourapp:showAsAction="ifRoom|withText"  >
+    </item>
+
+    <item
+        android:id="@+id/view_stats"
+        android:title="@string/view_stats"
+        android:icon="@drawable/ic_action_stats"
+        yourapp:showAsAction="ifRoom|withText"  >
+    </item>
   
 </menu>

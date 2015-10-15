@@ -1,12 +1,13 @@
 package br.ufrgs.inf01059.wikipapers;
 
-import br.ufrgs.inf01059.wikipapers.SnmpBaseAgent.SnmpBaseAgent;
+//import br.ufrgs.inf01059.wikipapers.SnmpBaseAgent.SnmpBaseAgent;
 import br.ufrgs.inf01059.wikipapers.model.NotesDAO;
 import android.app.SearchManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -77,6 +78,8 @@ public class PaperListActivity extends ActionBarActivity implements
 	private final int ADD_NOTE = 1;
 	private final int EDIT_NOTE = 2;
 	private final int DETAIL_NOTE = 3;
+	private final int EDIT_SETTINGS = 4;
+	private final int VIEW_STATS = 5;
 	
 	private boolean mReturningWithResult = false;
 	
@@ -94,6 +97,13 @@ public class PaperListActivity extends ActionBarActivity implements
 
 		}	   
 		// TODO: If exposing deep links into your app, handle intents here.
+
+		SharedPreferences sharedPref = this.getSharedPreferences(getString(R.string.preference_file_id),
+																 Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sharedPref.edit();
+		editor.putInt("nSyncNotes", 0);
+		editor.putInt("syncDate", 0);
+		editor.commit();
 
 		Intent intent = new Intent(this, AgentService.class);
 		startService(intent);
@@ -263,7 +273,19 @@ public class PaperListActivity extends ActionBarActivity implements
 			editNoteIntent.putExtra(CreateNoteActivity.ARG_ITEM_ID, noteId);
 			startActivityForResult(editNoteIntent, EDIT_NOTE);
 			
-        	return true;	
+        	return true;
+		case R.id.settings:
+
+			Intent editSettingsIntent = new Intent(this, SettingsActivity.class);
+			startActivityForResult(editSettingsIntent, EDIT_SETTINGS);
+
+			return true;
+		case R.id.view_stats:
+
+			Intent viewStatsIntent = new Intent(this, StatisticsActivity.class);
+			startActivityForResult(viewStatsIntent, VIEW_STATS);
+
+			return true;
         case R.id.return_button:
         	
         	if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
