@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
@@ -23,7 +24,6 @@ import java.util.List;
 import br.ufrgs.inf01059.wikinotes.R;
 import br.ufrgs.inf01059.wikipapers.model.Note;
 import br.ufrgs.inf01059.wikipapers.model.NotesDAO;
-
 
 public class StatisticsActivity extends ActionBarActivity {
 
@@ -56,28 +56,28 @@ public class StatisticsActivity extends ActionBarActivity {
         screenText.append("Number of notes synced: " + nSyncNotes + "\n");
 
         //Last synchronization date
-        int syncDate = sharedPref.getInt("syncDate", 0);
-        Long longSyncDate = new Long(syncDate);
-        Date unformattedDate = new Date(longSyncDate);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        String formattedDate = dateFormat.format(unformattedDate);
+        Long longSyncDate = sharedPref.getLong("syncDate", 0);
+        String formattedDate;
+        if (longSyncDate == 0){
+            formattedDate = "-";
+        }
+        else {
+            Date unformattedDate = new Date(longSyncDate*1000);
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            formattedDate = dateFormat.format(unformattedDate);
+        }
         screenText.append("Synchronization date: " + formattedDate + "\n");
 
         TextView statsScreenTextView = (TextView) findViewById(R.id.usernameSettings);
         statsScreenTextView.setText(screenText.toString());
-
-        Intent intent = getIntent();
-
+        //Intent intent = getIntent();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
         // Inflate the options menu from XML
         getMenuInflater().inflate(R.menu.view_stats, menu);
         return super.onCreateOptionsMenu(menu);
-
-
     }
 
 

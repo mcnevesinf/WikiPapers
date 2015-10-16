@@ -87,7 +87,7 @@ public class PaperListActivity extends ActionBarActivity implements
 		if (sharedPref.contains("nSyncNotes") == false) {
 			SharedPreferences.Editor editor = sharedPref.edit();
 			editor.putInt("nSyncNotes", 0);
-			editor.putInt("syncDate", 0);
+			editor.putLong("syncDate", 0);
 			editor.commit();
 		}
 

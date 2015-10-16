@@ -108,17 +108,22 @@ public class AgentService extends Service {
         public void run() {
             Context context = getApplicationContext();
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-            List<Note> Notes = NotesDAO.getNotes(context);
+            SharedPreferences stats_prefs = context.getSharedPreferences(getString(R.string.preference_file_id), Context.MODE_PRIVATE);
+            List < Note > Notes = NotesDAO.getNotes(context);
 
             if (notesTable != null){
                 snmp_agent.getServer().unregister(notesTable, null);
                 username.setValue(new OctetString(prefs.getString("username", "Not set")));
                 numberOfNotes.setValue(new Integer32(Notes.size()));
+                SharedPreferences.Editor editor = stats_prefs.edit();
+                editor.putInt("nSyncNotes", numberOfNotesSynced.getValue().toInt());
+                editor.putLong("syncDate", lastSync.getValue().toLong());
+                editor.commit();
             }
             else{
                 username = MOScalarFactory.createReadOnly(usernameOid,  prefs.getString("username", "Not Set"));
                 numberOfNotesSynced =  MOScalarFactory.createReadWrite(numberOfNotesSyncedOid, prefs.getInt("nSyncNotes", 0));
-                lastSync =  MOScalarFactory.createReadWrite(lastSyncOid, new Counter64(prefs.getInt("syncDate", 0)));
+                lastSync =  MOScalarFactory.createReadWrite(lastSyncOid, new Counter64(prefs.getLong("syncDate", 0)));
                 numberOfNotes =  MOScalarFactory.createReadOnly(numberOfNotesOid, Notes.size());
                 snmp_agent.registerManagedObject(username);
                 snmp_agent.registerManagedObject(numberOfNotes);
