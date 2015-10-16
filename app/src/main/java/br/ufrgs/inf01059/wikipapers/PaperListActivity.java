@@ -88,6 +88,7 @@ public class PaperListActivity extends ActionBarActivity implements
 			SharedPreferences.Editor editor = sharedPref.edit();
 			editor.putInt("nSyncNotes", 0);
 			editor.putLong("syncDate", 0);
+			editor.putString("username", "DefaultUser");
 			editor.commit();
 		}
 

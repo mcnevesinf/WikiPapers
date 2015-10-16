@@ -43,7 +43,7 @@ public class StatisticsActivity extends ActionBarActivity {
         StringBuilder screenText = new StringBuilder();
 
         //Username
-        screenText.append("Username: " + sharedPrefSettings.getString("username", "") + "\n");
+        screenText.append("Username: " + sharedPrefSettings.getString("username", "DefaultUser") + "\n");
 
         //Total of notes
         Context context = getApplicationContext();
